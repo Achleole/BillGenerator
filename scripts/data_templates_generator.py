@@ -3,6 +3,7 @@ from pathlib import Path
 from config.infos_script import path_to_data
 from scripts.data_utils import client_extraction
 from openpyxl import load_workbook
+from .settings import PREFER_ODS
 
 """
 The main job of this script is the generation of the data directory, and both the data sheets and the student database
@@ -30,12 +31,19 @@ def data_templates_generation(year):
 
     # Check if student database exists, if not create it
     if not Path(f"{path_to_data}Infos_élèves.xlsx").is_file():
-        shutil.copy("templates/Infos_élèves.xlsx", f"{path_to_data}Infos_élèves.xlsx")
+        if PREFER_ODS:
+            shutil.copy("templates/Infos_élèves.ods", f"{path_to_data}Infos_élèves.ods")
+        else:
+            shutil.copy("templates/Infos_élèves.xlsx", f"{path_to_data}Infos_élèves.xlsx")
         # And create all missing month sheets
         for n, month in months.items():
             file_path_no_ext = f'{path_to_data}{year}/{n}-Cours{month}'
             if (not Path(f'{file_path_no_ext}.xlsx').is_file()) and (not Path(f'{file_path_no_ext}.ods').is_file()):
-                shutil.copy('templates/0-CoursMois.xlsx', f'{file_path_no_ext}.xlsx')
+                if PREFER_ODS:
+                    shutil.copy('templates/0-CoursMois.ods', f'{file_path_no_ext}.ods')
+                else:
+                    shutil.copy('templates/0-CoursMois.xlsx', f'{file_path_no_ext}.xlsx')
+                
     else:
         clients = client_extraction()
         # creation and flattening of the list of all attached students for every clients
@@ -50,4 +58,7 @@ def data_templates_generation(year):
         for n, month in months.items():
             file_path_no_ext = f'{path_to_data}{year}/{n}-Cours{month}'
             if (not Path(f'{file_path_no_ext}.xlsx').is_file()) and (not Path(f'{file_path_no_ext}.ods').is_file()):
-                book.save(f'{file_path_no_ext}.xlsx')
+                if PREFER_ODS:
+                    book.save(f'{file_path_no_ext}.ods')
+                else:
+                    book.save(f'{file_path_no_ext}.xlsx')
